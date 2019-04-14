@@ -20,6 +20,13 @@ class SawyerLift(SawyerEnv):
         gripper_type="TwoFingerGripper",
         table_full_size=(0.8, 0.8, 0.8),
         table_friction=(1., 5e-3, 1e-4),
+        cube_size_min=(0.020, 0.020, 0.020),  # [0.015, 0.015, 0.015],
+        cube_size_max=(0.022, 0.022, 0.022),  # [0.018, 0.018, 0.018]),
+        cube_x_range=(-0.03, 0.03),
+        cube_y_range=(-0.03, 0.03),
+        cube_friction=1,
+        cube_density=1000,
+        arm_init_pos_randomization_scale=.02,
         use_camera_obs=True,
         use_object_obs=True,
         reward_shaping=False,
@@ -111,11 +118,17 @@ class SawyerLift(SawyerEnv):
             self.placement_initializer = placement_initializer
         else:
             self.placement_initializer = UniformRandomSampler(
-                x_range=[-0.03, 0.03],
-                y_range=[-0.03, 0.03],
+                x_range=cube_x_range,
+                y_range=cube_y_range,
                 ensure_object_boundary_in_range=False,
                 z_rotation=True,
             )
+
+        self.cube_size_min = cube_size_min
+        self.cube_size_max = cube_size_max
+        self.cube_friction=cube_friction
+        self.cube_density=cube_density
+        self.arm_init_pos_randomization_scale = arm_init_pos_randomization_scale
 
         super().__init__(
             gripper_type=gripper_type,
@@ -154,8 +167,10 @@ class SawyerLift(SawyerEnv):
 
         # initialize objects of interest
         cube = BoxObject(
-            size_min=[0.020, 0.020, 0.020],  # [0.015, 0.015, 0.015],
-            size_max=[0.022, 0.022, 0.022],  # [0.018, 0.018, 0.018])
+            size_min=self.cube_size_min,  # [0.015, 0.015, 0.015],
+            size_max=self.cube_size_max,  # [0.018, 0.018, 0.018])
+            friction=self.cube_friction,
+            density=self.cube_density,
             rgba=[1, 0, 0, 1],
         )
         self.mujoco_objects = OrderedDict([("cube", cube)])
@@ -196,7 +211,7 @@ class SawyerLift(SawyerEnv):
 
         # reset joint positions
         init_pos = np.array([-0.5538, -0.8208, 0.4155, 1.8409, -0.4955, 0.6482, 1.9628])
-        init_pos += np.random.randn(init_pos.shape[0]) * 0.02
+        init_pos += np.random.randn(init_pos.shape[0]) * self.arm_init_pos_randomization_scale
         self.sim.data.qpos[self._ref_joint_pos_indexes] = np.array(init_pos)
 
     def reward(self, action=None):
