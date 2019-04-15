@@ -24,8 +24,9 @@ class SawyerLift(SawyerEnv):
         cube_size_max=(0.022, 0.022, 0.022),  # [0.018, 0.018, 0.018]),
         cube_x_range=(-0.03, 0.03),
         cube_y_range=(-0.03, 0.03),
-        cube_friction=1,
-        cube_density=1000,
+        cube_friction=None,
+        cube_density=None,
+        cube_z_rotation=True,
         arm_init_pos_randomization_scale=.02,
         use_camera_obs=True,
         use_object_obs=True,
@@ -121,7 +122,7 @@ class SawyerLift(SawyerEnv):
                 x_range=cube_x_range,
                 y_range=cube_y_range,
                 ensure_object_boundary_in_range=False,
-                z_rotation=True,
+                z_rotation=cube_z_rotation,
             )
 
         self.cube_size_min = cube_size_min
